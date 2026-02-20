@@ -1,4 +1,4 @@
-import { AlertCircle, ArrowRight, Check, Clock, RefreshCw, Send, User, UserCheck, UserPlus, X, Pause } from 'lucide-react';
+import { RefreshCcw, AlertCircle, ArrowRight, Check, Clock, RefreshCw, Send, User, UserCheck, UserPlus, X, Pause } from 'lucide-react';
 import type { Queue, Ticket, LinkedCustomer } from '../types';
 import AppHeader from '../components/AppHeader';
 import CustomerDialog from '../components/CustomerDialog';
@@ -27,12 +27,12 @@ const ServingScreen: React.FC<{
 
     interface ActionButton { icon: React.ReactNode; label: string; onClick: () => void; disabled?: boolean }
     const actionButtons: ActionButton[] = [
-        { icon: <RefreshCw className="w-5 h-5 text-blue-600" />, label: 'Recall',   onClick: noop, disabled: true },
-        { icon: <RefreshCw className="w-5 h-5 text-blue-600" />, label: 'Recycle',  onClick: noop, disabled: true },
-        { icon: <ArrowRight className="w-5 h-5 text-blue-600" />, label: 'Transfer', onClick: onTransfer },
-        { icon: <Pause       className="w-5 h-5 text-blue-600" />, label: 'Park',    onClick: noop, disabled: true },
-        { icon: <Send        className="w-5 h-5 text-blue-600" />, label: 'Send SMS', onClick: noop, disabled: true },
-        { icon: <X           className="w-5 h-5 text-blue-600" />, label: 'No Show', onClick: noop, disabled: true },
+        { icon: <RefreshCw className="w-4 h-4" />, label: 'Recall', onClick: undefined },
+        { icon: <RefreshCcw className="w-4 h-4" />, label: 'Recycle', onClick: undefined },
+        { icon: <ArrowRight className="w-4 h-4" />, label: 'Transfer', onClick: onTransfer },
+        { icon: <Pause className="w-4 h-4" />, label: 'Park', onClick: undefined },
+        { icon: <Send className="w-4 h-4" />, label: 'SMS', onClick: undefined },
+        { icon: <X className="w-4 h-4" />, label: 'No Show', onClick: undefined},
     ];
 
     return (
@@ -95,14 +95,12 @@ const ServingScreen: React.FC<{
                                           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none" />
                             </div>
                             {/* Action Buttons */}
-                            <div className="grid grid-cols-3 gap-3 mb-4">
+                            <div className="flex items-center justify-between gap-2 mb-4">
                                 {actionButtons.map(({ icon, label, onClick, disabled }) => (
                                     <button key={label} onClick={onClick} disabled={disabled}
-                                            className={`flex flex-col items-center gap-2 p-4 rounded-lg transition-colors ${
-                                                disabled ? 'bg-gray-50 opacity-50 cursor-not-allowed' : 'bg-blue-50 hover:bg-blue-100'
-                                            }`}>
+                                            className="flex items-center gap-1.5 px-3 py-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg transition-colors flex-1 justify-center">
                                         {icon}
-                                        <span className="text-sm font-medium text-blue-600">{label}</span>
+                                        <span className="text-xs font-medium whitespace-nowrap">{label}</span>
                                     </button>
                                 ))}
                             </div>
