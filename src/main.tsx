@@ -5,10 +5,6 @@ import App from './App.tsx'
 
 async function prepare(): Promise<void> {
     if (import.meta.env.VITE_USE_MOCK === 'true') {
-        // Seed fake SSO cookies so fetch({ credentials: 'include' }) sends them
-        const { seedDevCookies } = await import('./mocks/seedDevCookies')
-        seedDevCookies()
-
         // Start MSW service worker — must be ready before first API call
         const { worker } = await import('./mocks/browser')
         await worker.start({

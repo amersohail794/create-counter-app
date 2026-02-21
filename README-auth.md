@@ -6,7 +6,7 @@ This app uses a **two-phase development approach** to handle the enterprise SSO 
 
 | Phase | Mode | Backend | SSOcookie |
 |---|---|---|---|
-| **Phase 1: Mock** | `development` | MSW (no server needed) | Fake cookie seeded automatically |
+| **Phase 1: Mock** | `development` | MSW (no server needed) | Not required — MSW bypasses auth |
 | **Phase 2: Integration** | `integration` | Real Orchestra server via Vite proxy | Real cookie from SSO login |
 | **Production** | `production` | Direct calls (same origin) | Real cookie set by enterprise portal |
 
@@ -30,10 +30,17 @@ sends these cookies to the server — no manual header management needed.
 
 ### What happens
 1. `main.tsx` detects `VITE_USE_MOCK=true`
-2. Fake `SSOcookie` and `BAYEUX_BROWSER` cookies are seeded into the browser via `seedDevCookies.ts`
-3. MSW Service Worker starts and intercepts all `/api/*` calls
-4. Each handler validates the fake `SSOcookie` and returns mock data
-5. The React app renders and works fully — no server required
+2. MSW Service Worker starts and intercepts all `/api/*` calls
+3. Each handler returns mock data directly — no auth validation
+4. The React app renders and works fully — no server required
+
+### Why there is no cookie validation in mock mode
+MSW Service Workers run in an isolated SW context, completely separate from the
+browser tab. The `cookie` header is never forwarded to SW-intercepted requests,
+even when `credentials: 'include'` is set. Since `handlers.ts` is only ever
+loaded in mock/dev mode, auth is simply not checked — there is nothing to protect.
+The real SSOcookie validation happens on the actual Orchestra backend in
+integration/production, where MSW is never started.
 
 ### How to run
 ```bash
@@ -93,9 +100,8 @@ with `credentials: 'include'` just work.
 
 ### 1. Add the handler in `src/mocks/handlers.ts`
 ```ts
-http.get('/api/your-endpoint', async ({ request }) => {
+http.get('/api/your-endpoint', async () => {
   await delay();
-  if (!isAuthenticated(request)) return unauthorized();
   return HttpResponse.json(yourMockData);
 }),
 ```
@@ -123,7 +129,6 @@ src/
 ├── mocks/
 │   ├── browser.ts            ← MSW worker setup
 │   ├── handlers.ts           ← All API route handlers
-│   ├── seedDevCookies.ts     ← Seeds fake SSOcookie in browser
 │   └── data/
 │       ├── branches.ts
 │       ├── counters.ts
