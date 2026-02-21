@@ -28,23 +28,10 @@ import { mockCustomers, mockNextTicket } from './data/customers';
  * In real Orchestra, the server checks the session store.
  * Here we just verify the cookie exists and matches our seeded value.
  */
-type ResolverCookies = {
-  get?: (name: string) => string | undefined;
-  [key: string]: unknown;
-};
-
-function isAuthenticated(cookies: ResolverCookies): boolean {
-  // In MSW, resolver cookies can be either a plain object or a cookie-store-like object.
-  // Read both shapes to avoid false 401s across environments.
-  const rawValue =
-    typeof cookies?.get === 'function'
-      ? cookies.get('SSOcookie')
-      : typeof cookies?.SSOcookie === 'string'
-        ? cookies.SSOcookie
-        : undefined;
-
-  const cookieValue = rawValue ? decodeURIComponent(rawValue) : undefined;
-  return cookieValue === MOCK_SSO_COOKIE_VALUE;
+function isAuthenticated(cookies: Record<string, string>): boolean {
+  // In MSW (service worker), the `cookie` request header is not readable.
+  // Use resolver-provided parsed cookies instead.
+  return cookies['SSOcookie'] === MOCK_SSO_COOKIE_VALUE;
 }
 
 function unauthorized() {
