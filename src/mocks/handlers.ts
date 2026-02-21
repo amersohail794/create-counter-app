@@ -29,22 +29,21 @@ import { mockCustomers, mockNextTicket } from './data/customers';
  * Here we just verify the cookie exists and matches our seeded value.
  */
 function isAuthenticated(request: Request): boolean {
-  const cookieHeader = request.headers.get('cookie') ?? '';
-  // Parse cookie string into key-value pairs
-  const cookies = Object.fromEntries(
-    cookieHeader.split(';').map(c => {
-      const [k, ...v] = c.trim().split('=');
-      return [k, v.join('=')];
-    })
-  );
-  return cookies['SSOcookie'] === MOCK_SSO_COOKIE_VALUE;
+    const cookieHeader = request.headers.get('cookie') ?? '';
+    const cookies = Object.fromEntries(
+        cookieHeader.split(';').map(c => {
+            const [k, ...v] = c.trim().split('=');
+            return [k, v.join('=')];
+        })
+    );
+    return cookies['SSOcookie'] === MOCK_SSO_COOKIE_VALUE;
 }
 
 function unauthorized() {
-  return new HttpResponse(
-    JSON.stringify({ error: 'Unauthorized', message: 'Invalid or missing SSOcookie' }),
-    { status: 401, headers: { 'Content-Type': 'application/json' } }
-  );
+    return new HttpResponse(
+        JSON.stringify({ error: 'Unauthorized', message: 'Invalid or missing SSOcookie' }),
+        { status: 401, headers: { 'Content-Type': 'application/json' } }
+    );
 }
 
 // ─── Simulated network delay (makes dev feel realistic) ──────────
@@ -55,86 +54,86 @@ const delay = (ms = 300) => new Promise(resolve => setTimeout(resolve, ms));
 
 export const handlers = [
 
-  // GET /api/branches
-  http.get('/api/branches', async ({ request }) => {
-    await delay();
-    if (!isAuthenticated(request)) return unauthorized();
-    return HttpResponse.json(mockBranches);
-  }),
+    // GET /api/branches
+    http.get('/api/branches', async ({ request }) => {
+        await delay();
+        if (!isAuthenticated(request)) return unauthorized();
+        return HttpResponse.json(mockBranches);
+    }),
 
-  // GET /api/counters  (simple list for selection screen)
-  http.get('/api/counters', async ({ request }) => {
-    await delay();
-    if (!isAuthenticated(request)) return unauthorized();
-    return HttpResponse.json(mockCountersSimple);
-  }),
+    // GET /api/branches/:branchId/counters  (cascading — scoped to branch)
+    http.get('/api/branches/:branchId/counters', async ({ request }) => {
+        await delay();
+        if (!isAuthenticated(request)) return unauthorized();
+        return HttpResponse.json(mockCountersSimple);
+    }),
 
-  // GET /api/counters/detail  (full detail with staff + status for transfer)
-  http.get('/api/counters/detail', async ({ request }) => {
-    await delay();
-    if (!isAuthenticated(request)) return unauthorized();
-    return HttpResponse.json(mockCounters);
-  }),
+    // GET /api/branches/:branchId/counters/:counterId/profiles  (cascading — scoped to counter)
+    http.get('/api/branches/:branchId/counters/:counterId/profiles', async ({ request }) => {
+        await delay();
+        if (!isAuthenticated(request)) return unauthorized();
+        return HttpResponse.json(mockProfiles);
+    }),
 
-  // GET /api/profiles
-  http.get('/api/profiles', async ({ request }) => {
-    await delay();
-    if (!isAuthenticated(request)) return unauthorized();
-    return HttpResponse.json(mockProfiles);
-  }),
+    // GET /api/counters/detail  (full detail with staff + status for transfer dialog)
+    http.get('/api/counters/detail', async ({ request }) => {
+        await delay();
+        if (!isAuthenticated(request)) return unauthorized();
+        return HttpResponse.json(mockCounters);
+    }),
 
-  // GET /api/queues
-  http.get('/api/queues', async ({ request }) => {
-    await delay();
-    if (!isAuthenticated(request)) return unauthorized();
-    return HttpResponse.json(mockQueues);
-  }),
+    // GET /api/queues
+    http.get('/api/queues', async ({ request }) => {
+        await delay();
+        if (!isAuthenticated(request)) return unauthorized();
+        return HttpResponse.json(mockQueues);
+    }),
 
-  // GET /api/staff
-  http.get('/api/staff', async ({ request }) => {
-    await delay();
-    if (!isAuthenticated(request)) return unauthorized();
-    return HttpResponse.json(mockStaff);
-  }),
+    // GET /api/staff
+    http.get('/api/staff', async ({ request }) => {
+        await delay();
+        if (!isAuthenticated(request)) return unauthorized();
+        return HttpResponse.json(mockStaff);
+    }),
 
-  // GET /api/customers/search?q=...
-  http.get('/api/customers/search', async ({ request }) => {
-    await delay();
-    if (!isAuthenticated(request)) return unauthorized();
+    // GET /api/customers/search?q=...
+    http.get('/api/customers/search', async ({ request }) => {
+        await delay();
+        if (!isAuthenticated(request)) return unauthorized();
 
-    const url    = new URL(request.url);
-    const query  = url.searchParams.get('q')?.toLowerCase() ?? '';
+        const url   = new URL(request.url);
+        const query = url.searchParams.get('q')?.toLowerCase() ?? '';
 
-    const results = query.length > 0
-      ? mockCustomers.filter(c =>
-          `${c.firstName} ${c.lastName}`.toLowerCase().includes(query) ||
-          c.email.toLowerCase().includes(query) ||
-          c.phone.includes(query)
-        )
-      : [];
+        const results = query.length > 0
+            ? mockCustomers.filter(c =>
+                `${c.firstName} ${c.lastName}`.toLowerCase().includes(query) ||
+                c.email.toLowerCase().includes(query) ||
+                c.phone.includes(query)
+            )
+            : [];
 
-    return HttpResponse.json(results);
-  }),
+        return HttpResponse.json(results);
+    }),
 
-  // POST /api/tickets/next  — call next customer
-  http.post('/api/tickets/next', async ({ request }) => {
-    await delay(500); // slightly longer — simulates queue processing
-    if (!isAuthenticated(request)) return unauthorized();
-    return HttpResponse.json(mockNextTicket);
-  }),
+    // POST /api/tickets/next  — call next customer
+    http.post('/api/tickets/next', async ({ request }) => {
+        await delay(500); // slightly longer — simulates queue processing
+        if (!isAuthenticated(request)) return unauthorized();
+        return HttpResponse.json(mockNextTicket);
+    }),
 
-  // POST /api/tickets/:ticketNumber/finish
-  http.post('/api/tickets/:ticketNumber/finish', async ({ request }) => {
-    await delay();
-    if (!isAuthenticated(request)) return unauthorized();
-    return new HttpResponse(null, { status: 204 });
-  }),
+    // POST /api/tickets/:ticketNumber/finish
+    http.post('/api/tickets/:ticketNumber/finish', async ({ request }) => {
+        await delay();
+        if (!isAuthenticated(request)) return unauthorized();
+        return new HttpResponse(null, { status: 204 });
+    }),
 
-  // POST /api/tickets/:ticketNumber/transfer
-  http.post('/api/tickets/:ticketNumber/transfer', async ({ request }) => {
-    await delay();
-    if (!isAuthenticated(request)) return unauthorized();
-    return new HttpResponse(null, { status: 204 });
-  }),
+    // POST /api/tickets/:ticketNumber/transfer
+    http.post('/api/tickets/:ticketNumber/transfer', async ({ request }) => {
+        await delay();
+        if (!isAuthenticated(request)) return unauthorized();
+        return new HttpResponse(null, { status: 204 });
+    }),
 
 ];

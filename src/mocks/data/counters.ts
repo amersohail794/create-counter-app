@@ -5,6 +5,7 @@ export const mockCountersSimple: CounterSimple[] = [
   { id: 2, name: 'Counter 2' },
   { id: 3, name: 'Counter 3' },
   { id: 4, name: 'Counter 4' },
+    { id: 5, name: 'Counter 5' },
 ];
 
 export const mockCounters: Counter[] = [
@@ -12,6 +13,7 @@ export const mockCounters: Counter[] = [
   { id: 2, name: 'Counter 2', staff: 'Sarah Ahmed',  status: 'active'   },
   { id: 3, name: 'Counter 3', staff: 'Mohammed Ali', status: 'active'   },
   { id: 4, name: 'Counter 4', staff: 'Not Active',   status: 'inactive' },
+    { id: 5, name: 'Counter 5', staff: 'Not Active',   status: 'inactive' },
 ];
 
 export const mockProfiles: Profile[] = [
