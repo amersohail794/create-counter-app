@@ -28,16 +28,23 @@ import { mockCustomers, mockNextTicket } from './data/customers';
  * In real Orchestra, the server checks the session store.
  * Here we just verify the cookie exists and matches our seeded value.
  */
-function isAuthenticated(request: Request): boolean {
-  const cookieHeader = request.headers.get('cookie') ?? '';
-  // Parse cookie string into key-value pairs
-  const cookies = Object.fromEntries(
-    cookieHeader.split(';').map(c => {
-      const [k, ...v] = c.trim().split('=');
-      return [k, v.join('=')];
-    })
-  );
-  return cookies['SSOcookie'] === MOCK_SSO_COOKIE_VALUE;
+type ResolverCookies = {
+  get?: (name: string) => string | undefined;
+  [key: string]: unknown;
+};
+
+function isAuthenticated(cookies: ResolverCookies): boolean {
+  // In MSW, resolver cookies can be either a plain object or a cookie-store-like object.
+  // Read both shapes to avoid false 401s across environments.
+  const rawValue =
+    typeof cookies?.get === 'function'
+      ? cookies.get('SSOcookie')
+      : typeof cookies?.SSOcookie === 'string'
+        ? cookies.SSOcookie
+        : undefined;
+
+  const cookieValue = rawValue ? decodeURIComponent(rawValue) : undefined;
+  return cookieValue === MOCK_SSO_COOKIE_VALUE;
 }
 
 function unauthorized() {
@@ -56,51 +63,51 @@ const delay = (ms = 300) => new Promise(resolve => setTimeout(resolve, ms));
 export const handlers = [
 
   // GET /api/branches
-  http.get('/api/branches', async ({ request }) => {
+  http.get('/api/branches', async ({ cookies }) => {
     await delay();
-    if (!isAuthenticated(request)) return unauthorized();
+    if (!isAuthenticated(cookies)) return unauthorized();
     return HttpResponse.json(mockBranches);
   }),
 
   // GET /api/counters  (simple list for selection screen)
-  http.get('/api/counters', async ({ request }) => {
+  http.get('/api/counters', async ({ cookies }) => {
     await delay();
-    if (!isAuthenticated(request)) return unauthorized();
+    if (!isAuthenticated(cookies)) return unauthorized();
     return HttpResponse.json(mockCountersSimple);
   }),
 
   // GET /api/counters/detail  (full detail with staff + status for transfer)
-  http.get('/api/counters/detail', async ({ request }) => {
+  http.get('/api/counters/detail', async ({ cookies }) => {
     await delay();
-    if (!isAuthenticated(request)) return unauthorized();
+    if (!isAuthenticated(cookies)) return unauthorized();
     return HttpResponse.json(mockCounters);
   }),
 
   // GET /api/profiles
-  http.get('/api/profiles', async ({ request }) => {
+  http.get('/api/profiles', async ({ cookies }) => {
     await delay();
-    if (!isAuthenticated(request)) return unauthorized();
+    if (!isAuthenticated(cookies)) return unauthorized();
     return HttpResponse.json(mockProfiles);
   }),
 
   // GET /api/queues
-  http.get('/api/queues', async ({ request }) => {
+  http.get('/api/queues', async ({ cookies }) => {
     await delay();
-    if (!isAuthenticated(request)) return unauthorized();
+    if (!isAuthenticated(cookies)) return unauthorized();
     return HttpResponse.json(mockQueues);
   }),
 
   // GET /api/staff
-  http.get('/api/staff', async ({ request }) => {
+  http.get('/api/staff', async ({ cookies }) => {
     await delay();
-    if (!isAuthenticated(request)) return unauthorized();
+    if (!isAuthenticated(cookies)) return unauthorized();
     return HttpResponse.json(mockStaff);
   }),
 
   // GET /api/customers/search?q=...
-  http.get('/api/customers/search', async ({ request }) => {
+  http.get('/api/customers/search', async ({ request, cookies }) => {
     await delay();
-    if (!isAuthenticated(request)) return unauthorized();
+    if (!isAuthenticated(cookies)) return unauthorized();
 
     const url    = new URL(request.url);
     const query  = url.searchParams.get('q')?.toLowerCase() ?? '';
@@ -117,23 +124,23 @@ export const handlers = [
   }),
 
   // POST /api/tickets/next  — call next customer
-  http.post('/api/tickets/next', async ({ request }) => {
+  http.post('/api/tickets/next', async ({ cookies }) => {
     await delay(500); // slightly longer — simulates queue processing
-    if (!isAuthenticated(request)) return unauthorized();
+    if (!isAuthenticated(cookies)) return unauthorized();
     return HttpResponse.json(mockNextTicket);
   }),
 
   // POST /api/tickets/:ticketNumber/finish
-  http.post('/api/tickets/:ticketNumber/finish', async ({ request }) => {
+  http.post('/api/tickets/:ticketNumber/finish', async ({ cookies }) => {
     await delay();
-    if (!isAuthenticated(request)) return unauthorized();
+    if (!isAuthenticated(cookies)) return unauthorized();
     return new HttpResponse(null, { status: 204 });
   }),
 
   // POST /api/tickets/:ticketNumber/transfer
-  http.post('/api/tickets/:ticketNumber/transfer', async ({ request }) => {
+  http.post('/api/tickets/:ticketNumber/transfer', async ({ cookies }) => {
     await delay();
-    if (!isAuthenticated(request)) return unauthorized();
+    if (!isAuthenticated(cookies)) return unauthorized();
     return new HttpResponse(null, { status: 204 });
   }),
 
