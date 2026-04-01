@@ -26,7 +26,10 @@ export default defineConfig(({ mode }) => {
                     '/api': {
                         target: env.VITE_ORCHESTRA_TARGET,
                         changeOrigin: true,
-                        secure: false, // set to true if Orchestra uses a valid HTTPS cert
+                        secure: false,
+                        cookieDomainRewrite: 'localhost',
+                        rewrite: (path) => path.replace(/^\/api/, '/rest/servicepoint'),
+
                         // Uncomment + adjust if Orchestra API lives under a sub-path e.g. /rest/api:
                         // rewrite: (path) => path.replace(/^\/api/, '/rest/api'),
                         configure: (proxy) => {

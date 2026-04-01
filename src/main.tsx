@@ -12,7 +12,18 @@ async function prepare(): Promise<void> {
         })
 
         console.info('[Dev] MSW started — API calls are being intercepted.')
+    } else {
+        // Ensure any previously registered MSW service worker is unregistered
+        // so it doesn't intercept real API calls in integration/production mode.
+        if ('serviceWorker' in navigator) {
+            const registrations = await navigator.serviceWorker.getRegistrations()
+            for (const registration of registrations) {
+                await registration.unregister()
+            }
+            console.info('[Integration] MSW service worker unregistered.')
+        }
     }
+
 }
 
 prepare().then(() => {
